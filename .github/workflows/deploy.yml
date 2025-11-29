@@ -17,4 +17,4 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
       - name: Deploy
-        run: echo "Streamlit Cloud will deploy from main branch automatically"
+        run: echo "Streamlit Cloud will deploy automatically from main branch"
