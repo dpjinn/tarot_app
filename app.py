@@ -1,44 +1,81 @@
 import streamlit as st
-from openai import OpenAI
-from tarot_reader import draw_three_cards, make_prompt
-from PIL import Image
-import base64
-import io
+import pandas as pd
+import os
+from utils.data_utils import (
+    save_csv, load_csv,
+    save_json, load_json,
+    save_parquet_no_pyarrow, load_parquet_no_pyarrow
+)
 
-# --- OpenAI Client ---
-client = OpenAI()
+st.set_page_config(page_title="GitHub + Streamlit Data Utility", layout="wide")
 
-st.set_page_config(page_title="Tarot Reader", layout="wide")
-st.title("🔮 AI Tarot Card Reader")
-st.write("This app generates Tarot card images using the OpenAI Image API (DALL·E 3).")
+st.title("📂 Data Utility App (GitHub + Streamlit Cloud)")
+st.write("Upload → Preview → Save → Re-Download | No pyarrow needed.")
 
-if "cards" not in st.session_state:
-    st.session_state.cards = None
-if "images" not in st.session_state:
-    st.session_state.images = None
+menu = st.sidebar.selectbox("Menu", ["Upload & Preview", "Save Formats", "Load Parquet"])
 
-if st.button("Draw 3 Tarot Cards"):
-    st.session_state.cards = draw_three_cards()
-    st.session_state.images = []
+uploaded_df = None
 
-    for card in st.session_state.cards:
-        prompt = make_prompt(card)
-        response = client.images.generate(
-            model="gpt-image-1",
-            prompt=prompt,
-            size="512x512"
-        )
+# -------------------------
+# 1) Upload & Preview
+# -------------------------
+if menu == "Upload & Preview":
+    st.subheader("Upload CSV or JSON")
+    uploaded = st.file_uploader("Upload File", type=["csv", "json"])
 
-        img_base64 = response.data[0].b64_json
-        image_bytes = base64.b64decode(img_base64)
-        image = Image.open(io.BytesIO(image_bytes))
+    if uploaded:
+        if uploaded.name.endswith(".csv"):
+            df = pd.read_csv(uploaded)
+        else:
+            df = pd.read_json(uploaded)
 
-        st.session_state.images.append(image)
+        st.success("File loaded!")
+        st.dataframe(df)
 
-if st.session_state.cards:
-    st.subheader("Your Tarot Cards")
+        st.session_state["df"] = df
 
-    cols = st.columns(3)
-    for i, card in enumerate(st.session_state.cards):
-        with cols[i]:
-            st.image(st.session_state.images[i], caption=card)
+# -------------------------
+# 2) Save Formats
+# -------------------------
+elif menu == "Save Formats":
+    st.subheader("Save Uploaded DataFrame")
+    
+    if "df" not in st.session_state:
+        st.warning("Upload a file first!")
+    else:
+        df = st.session_state["df"]
+        file_type = st.selectbox("Choose Format", ["CSV", "JSON", "Parquet (DuckDB)"])
+        filename = st.text_input("File Name (ex: output.csv)")
+
+        if st.button("Save File"):
+            if filename == "":
+                st.error("Enter a valid file name")
+            else:
+                path = filename
+
+                if file_type == "CSV":
+                    save_csv(df, path)
+                elif file_type == "JSON":
+                    save_json(df, path)
+                elif file_type == "Parquet (DuckDB)":
+                    save_parquet_no_pyarrow(df, path)
+
+                with open(path, "rb") as f:
+                    st.download_button("Download File", f, path)
+
+# -------------------------
+# 3) Load Parquet (DuckDB)
+# -------------------------
+elif menu == "Load Parquet":
+    st.subheader("Load a Parquet File (No pyarrow needed)")
+
+    uploaded = st.file_uploader("Upload Parquet", type=["parquet"])
+
+    if uploaded:
+        temp_path = "temp.parquet"
+        with open(temp_path, "wb") as f:
+            f.write(uploaded.read())
+
+        df = load_parquet_no_pyarrow(temp_path)
+        st.dataframe(df)
+        st.session_state["df"] = df
