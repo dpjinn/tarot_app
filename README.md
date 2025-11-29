@@ -1,32 +1,27 @@
-# tarot_app
+# 🔮 AI Tarot Card Reader
 
-# Streamlit Data Utility App (No PyArrow)
-
-This repository provides a Streamlit application that:
-- Uploads CSV/JSON
-- Previews data
-- Saves as CSV / JSON / Parquet
-- Loads Parquet without pyarrow
-- Fully compatible with Streamlit Cloud deployment
-- Uses DuckDB instead of pyarrow
-
----
-
-## 🚀 Deploy on Streamlit Cloud
-
-1. Push this repository to GitHub  
-2. Go to: https://streamlit.io/cloud  
-3. Click **“Deploy from GitHub”**  
-4. Select this repository  
-5. Choose:
-   - Entry point → `app.py`
-
-You're ready!
+Features:
+- 78 Tarot cards (from tarot_cards.csv)
+- AI-generated mystical images
+- Download button for each card
+- User login (streamlit_authenticator)
+- Styled UI + button animation
+- GitHub Actions CI/CD
+- No pyarrow needed
 
 ---
 
-## 💻 Run Locally (Windows/Mac)
+## Deploy on Streamlit Cloud
+1. Push repo to GitHub
+2. Go to https://streamlit.io/cloud
+3. Click "Deploy from GitHub"
+4. Select main branch, entry point: app.py
+5. Set OPENAI_API_KEY in secrets
+6. Enjoy the app!
 
-### Install
+---
+
+## Run locally
 ```bash
 pip install -r requirements.txt
+streamlit run app.py
