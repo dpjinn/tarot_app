@@ -6,10 +6,9 @@ import random
 import streamlit_authenticator as stauth
 
 # -----------------------------
-# User Authentication (Hashed Password)
+# User Authentication
 # -----------------------------
-# 비밀번호 해시화
-hashed_passwords = stauth.Hasher(["password123"]).generate()
+hashed_passwords = stauth.hasher.Hasher(["password123"]).generate()
 
 credentials = {
     "usernames": {
@@ -22,8 +21,8 @@ credentials = {
 
 authenticator = stauth.Authenticate(
     credentials,
-    "tarot_cookie",    # cookie name
-    "tarot_key",       # key name
+    "tarot_cookie",
+    "tarot_key",
     cookie_expiry_days=1
 )
 
